@@ -2,6 +2,7 @@ import fitz
 import re
 from typing import Dict, List, Pattern, Tuple, Optional
 
+
 def extract_hierarchical_toc(
     pdf_path: str, 
     regex_patterns: List[Pattern],
@@ -49,6 +50,24 @@ def extract_hierarchical_toc(
     doc.close()
     return structure_by_page
 
+
+def format_toc_for_prompt(toc_structure: Dict[int, List[Tuple[int, str, str, str]]]) -> str:
+    output_lines = []
+    all_structures = []
+    for page, structures in sorted(toc_structure.items()):
+        all_structures.extend(structures)
+    
+    if not all_structures:
+        return "추출된 목차 항목이 없습니다."
+
+    for level, num, title, page_num in all_structures:
+        indent = "    " * level
+        page_str = page_num.strip() if page_num else "N/A"
+        output_lines.append(f"{indent}> [L{level+1}: {num.strip()}] [Title: {title.strip()}] [Page: {page_str}]")
+    
+    return "\n".join(output_lines)
+
+
 if __name__ == "__main__":
     file_name = "preface.pdf"
     
@@ -74,9 +93,7 @@ if __name__ == "__main__":
 
     print("--- Hierarchical TOC Extraction Results ---")
     for page, structures in sorted(toc_structure.items()):
-        print(f"\n[Page {page}]")
         for level, num, title, page_num in structures:
             indent = "    " * level
             page_str = page_num.strip() if page_num else "N/A"
             print(f"{indent}> [L{level+1}: {num.strip()}] [Title: {title.strip()}] [Page: {page_str}]")
-
